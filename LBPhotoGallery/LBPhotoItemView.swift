@@ -19,7 +19,7 @@ class LBPhotoContainerView: UIView
 	{
 		var displayFrame = CGRect(origin: CGPoint(x: 0, y: 0), size: frame.size)
 
-		super.init(frame: displayFrame)
+		super.init(frame: frame)
 
 		switch (galleryMode) {
 			case .ImageLocal:
