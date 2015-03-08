@@ -51,6 +51,13 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 		commonInit()
 	}
 	
+	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?)
+	{
+		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+		
+		commonInit()
+	}
+	
 	override func viewWillAppear(animated: Bool)
 	{
 		super.viewWillAppear(animated)
