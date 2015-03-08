@@ -52,7 +52,6 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		
 		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
 		
-		self.initDefaults()
 		self.initMainScrollView()
 	}
 
@@ -62,14 +61,12 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		
 		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight;
 		
-		self.initDefaults()
 		self.initMainScrollView()
 	}
 	
 	override func awakeFromNib()
 	{
 		super.awakeFromNib()
-		self.initDefaults()
 		self.initMainScrollView()
 		
 	}
@@ -279,17 +276,6 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	}
 	
 	// MARK: - protected methods (if only :( )
-	
-	func initDefaults()
-	{
-		galleryMode = .ImageLocal
-		captionStyle = .PlainText
-		subviewGap = DefaultSubviewsGap
-		peakSubView = false
-		showScrollIndicators = false
-		verticalGallery = false
-		initialIndex = 0
-	}
 	
 	func initMainScrollView()
 	{
