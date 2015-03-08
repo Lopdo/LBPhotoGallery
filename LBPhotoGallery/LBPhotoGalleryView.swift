@@ -195,29 +195,36 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		var newPage: CGFloat
 		var scrollIndicatorMoveSpace: CGFloat
 		
-		var frame = mainScrollIndicatorView.frame
-		
 		if verticalGallery {
 			newPage = scrollView.contentOffset.y / scrollView.frame.size.height
-			if dataSourceNumOfViews == 1 {
-				scrollIndicatorMoveSpace = 0
-			}
-			else {
-				scrollIndicatorMoveSpace = (self.frame.size.height - mainScrollIndicatorView.frame.size.height) / CGFloat(dataSourceNumOfViews - 1)
-			}
-			frame.origin.y = newPage * scrollIndicatorMoveSpace
-		} else {
-			newPage = scrollView.contentOffset.x / scrollView.frame.size.width;
-			if dataSourceNumOfViews == 1 {
-				scrollIndicatorMoveSpace = 0
-			}
-			else {
-				scrollIndicatorMoveSpace = (self.frame.size.width - mainScrollIndicatorView.frame.size.width) / CGFloat(dataSourceNumOfViews - 1)
-			}
-			frame.origin.x = newPage*scrollIndicatorMoveSpace;
+		}
+		else {
+			newPage = scrollView.contentOffset.x / scrollView.frame.size.width
 		}
 		
-		mainScrollIndicatorView.frame = frame
+		if let indicatorView = mainScrollIndicatorView {
+			var frame = mainScrollIndicatorView.frame
+			
+			if verticalGallery {
+				if dataSourceNumOfViews == 1 {
+					scrollIndicatorMoveSpace = 0
+				}
+				else {
+					scrollIndicatorMoveSpace = (self.frame.size.height - mainScrollIndicatorView.frame.size.height) / CGFloat(dataSourceNumOfViews - 1)
+				}
+				frame.origin.y = newPage * scrollIndicatorMoveSpace
+			} else {
+				if dataSourceNumOfViews == 1 {
+					scrollIndicatorMoveSpace = 0
+				}
+				else {
+					scrollIndicatorMoveSpace = (self.frame.size.width - mainScrollIndicatorView.frame.size.width) / CGFloat(dataSourceNumOfViews - 1)
+				}
+				frame.origin.x = newPage * scrollIndicatorMoveSpace
+			}
+			
+			mainScrollIndicatorView.frame = frame
+		}
 		
 		if Int(newPage) != currentPage {
 			currentPage = Int(newPage)
@@ -237,10 +244,12 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	func scrollViewWillBeginDragging(scrollView: UIScrollView)
 	{
-		mainScrollIndicatorView.tag = 1
-		UIView.animateWithDuration(0.3, { () -> Void in
-			self.mainScrollIndicatorView.alpha = 1
-		})
+		if let indicatorView = self.mainScrollIndicatorView {
+			indicatorView.tag = 1
+			UIView.animateWithDuration(0.3, { () -> Void in
+				indicatorView.alpha = 1
+			})
+		}
 
 		if self.delegate != nil && self.delegate!.respondsToSelector("scrollViewWillBeginDragging:") {
 			self.delegate!.scrollViewWillBeginDragging!(scrollView)
@@ -262,20 +271,22 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	{
 		self.delegate?.photoGallery?(self, didMoveToIndex: currentPage)
 		
-		mainScrollIndicatorView.tag = 0
-		
-		weak var weakMainScrollIndicatorView = mainScrollIndicatorView
-		
-		var popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(2.0 * Double(NSEC_PER_SEC)))
-		dispatch_after(popTime, dispatch_get_main_queue(), { () -> Void in
-			if let uIndView = weakMainScrollIndicatorView {
-				if (uIndView.tag == 0) {
-					UIView.animateWithDuration(0.5, animations: { () -> Void in
-						uIndView.alpha = 0
-					})
+		if let indicatorView = self.mainScrollIndicatorView {
+			indicatorView.tag = 0
+			
+			weak var weakMainScrollIndicatorView = indicatorView
+			
+			var popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(2.0 * Double(NSEC_PER_SEC)))
+			dispatch_after(popTime, dispatch_get_main_queue(), { () -> Void in
+				if let uIndView = weakMainScrollIndicatorView {
+					if (uIndView.tag == 0) {
+						UIView.animateWithDuration(0.5, animations: { () -> Void in
+							uIndView.alpha = 0
+						})
+					}
 				}
-			}
-		})
+			})
+		}
 	}
 	
 	// MARK: - protected methods (if only :( )
@@ -291,7 +302,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			frame.size.width += subviewGap
 		}
 		
-		mainScrollView.removeFromSuperview()
+		if mainScrollView != nil {
+			mainScrollView.removeFromSuperview()
+		}
 		
 		mainScrollView = UIScrollView(frame:frame)
 		mainScrollView.autoresizingMask = self.autoresizingMask
@@ -455,7 +468,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	func setupScrollIndicator()
 	{
-		mainScrollIndicatorView.removeFromSuperview()
+		if mainScrollIndicatorView != nil {
+			mainScrollIndicatorView.removeFromSuperview()
+		}
 		
 		if showScrollIndicators {
 			var scrollIndicatorLength: CGFloat = 0.0
