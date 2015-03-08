@@ -230,8 +230,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			}
 		}
 		
-		// HACK? Was delegate!!
-		self.scrollViewDidScroll(scrollView)
+		if self.delegate != nil && self.delegate!.respondsToSelector("scrollViewDidScroll:") {
+			self.delegate!.scrollViewDidScroll!(scrollView)
+		}
 	}
 	
 	func scrollViewWillBeginDragging(scrollView: UIScrollView)
@@ -241,8 +242,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			self.mainScrollIndicatorView.alpha = 1
 		})
 
-		// HACK? Was delegate!!
-		self.scrollViewWillBeginDragging(scrollView)
+		if self.delegate != nil && self.delegate!.respondsToSelector("scrollViewWillBeginDragging:") {
+			self.delegate!.scrollViewWillBeginDragging!(scrollView)
+		}
 	}
 	
 	func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool)
@@ -251,8 +253,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			self.scrollViewDidEndDecelerating(scrollView)
 		}
 		
-		// HACK? Was delegate!!
-		self.scrollViewDidEndDragging(scrollView, willDecelerate:decelerate)
+		if self.delegate != nil && self.delegate!.respondsToSelector("scrollViewDidEndDragging:willDecelerate:") {
+			self.delegate!.scrollViewDidEndDragging!(scrollView, willDecelerate:decelerate)
+		}
 	}
 	
 	func scrollViewDidEndDecelerating(scrollView: UIScrollView)
