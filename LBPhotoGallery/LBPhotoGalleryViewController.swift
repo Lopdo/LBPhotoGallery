@@ -198,7 +198,9 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 	
 	func setupTopBar()
 	{
-		topView.removeFromSuperview()
+		if topView != nil {
+			topView.removeFromSuperview()
+		}
 		
 		if dataSource != nil && dataSource!.respondsToSelector("customTopViewForGalleryViewController:") {
 			topView = dataSource!.customTopViewForGalleryViewController!(self)

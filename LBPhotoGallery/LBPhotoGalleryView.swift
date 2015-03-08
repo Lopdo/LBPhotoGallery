@@ -389,7 +389,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	func populateSubviews()
 	{
-		for var i = reusableViews.count; i >= 0; i-- {
+		for var i = reusableViews.count - 1; i >= 0; i-- {
 			var view = reusableViews[i]
 			if view.tag < currentPage - MaxSpareViews || view.tag > currentPage + MaxSpareViews {
 				view.removeFromSuperview()
