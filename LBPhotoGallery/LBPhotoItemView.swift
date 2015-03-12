@@ -54,10 +54,10 @@ class LBPhotoContainerView: UIView
 		}
 	}
 	
-	var delegate: LBPhotoGalleryDelegate?
+	var galleryDelegate: LBPhotoGalleryDelegate?
 	{
 		didSet {
-			photoItemView.delegate = delegate
+			photoItemView.galleryDelegate = galleryDelegate
 		}
 	}
 	
@@ -97,6 +97,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 {
 	var mainImageView: UIView?
 	var gallery: LBPhotoGalleryView?
+	var galleryDelegate: LBPhotoGalleryDelegate?
 	
 	override init(frame: CGRect)
 	{
@@ -107,6 +108,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		self.clipsToBounds = true
 		self.delegate = self
 		self.minimumZoomScale = 1
+		self.userInteractionEnabled = true
 		
 		var singleTapGesture = UITapGestureRecognizer(target: self, action: "tapGestureRecognizer:")
 		singleTapGesture.numberOfTapsRequired = 1
@@ -124,6 +126,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 	convenience init(frame: CGRect, localImage:UIImage)
 	{
 		self.init(frame: frame)
+		
 		
 		var imageView = UIImageView(frame: frame)
 		imageView.backgroundColor = UIColor.clearColor()
@@ -169,7 +172,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 	
 	func tapGestureRecognizer(tapGesture: UITapGestureRecognizer)
 	{
-		if let uDelegate = delegate as? LBPhotoGalleryDelegate {
+		if let uDelegate = galleryDelegate {
 			/*if (tapGesture.numberOfTapsRequired == 1) {
 				uDelegate.photoGallery(uGallery, didTapAtIndex: self.tag)
 			}
@@ -248,6 +251,7 @@ class LBRemotePhotoItem: UIImageView
 	{
 		super.init(frame: frame)
 		
+		self.userInteractionEnabled = true
 		self.backgroundColor = UIColor.clearColor()
 		self.contentMode = .ScaleAspectFit;
 		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight;

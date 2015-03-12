@@ -40,7 +40,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	var reusableViews = [LBPhotoContainerView]()
 	var dataSourceNumOfViews: Int = 0
-	var initialIndex: Int = 0
+	//var initialIndex: Int = 0
 	var currentPage: Int = 0
 	
 	@IBOutlet var delegate: LBPhotoGalleryDelegate?
@@ -109,6 +109,8 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		}
 	}
 	
+	var initialIndex: Int = 0
+	
 	var verticalGallery: Bool = false
 	{
 		didSet {
@@ -141,13 +143,13 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		mainScrollView.contentSize = frame.size
 	}
 	
-	func setInitialIndex(index: Int, animated: Bool)
+	/*func setInitialIndex(index: Int, animated: Bool)
 	{
 		initialIndex = index
 		currentPage = index
 		
 		self.scrollToPage(currentPage, animated:animated)
-	}
+	}*/
 	
 	func scrollToPage(page: Int, animated: Bool) -> Bool
 	{
@@ -155,7 +157,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			return false
 		}
 		
-		currentPage = page;
+		currentPage = page
 		self.populateSubviews()
 		
 		var contentOffset = mainScrollView.contentOffset
@@ -346,7 +348,9 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		
 		if currentPage == 0 && initialIndex != 0 {
 			currentPage = initialIndex
-			initialIndex = 0
+			//initialIndex = 0
+			
+			//self.scrollToPage(currentPage, animated:false)
 		}
 		
 		var tmpCurrentPage = currentPage
@@ -439,7 +443,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		
 		var subView = LBPhotoContainerView(frame: frame, galleryMode: galleryMode, item: galleryItem!)
 		subView.tag = index
-		subView.delegate = self
+		subView.galleryDelegate = self
 		subView.gallery = self
 		
 		var captionItem:AnyObject? = nil
