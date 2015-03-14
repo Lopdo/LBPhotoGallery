@@ -173,15 +173,6 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 	func tapGestureRecognizer(tapGesture: UITapGestureRecognizer)
 	{
 		if let uDelegate = galleryDelegate {
-			/*if (tapGesture.numberOfTapsRequired == 1) {
-				uDelegate.photoGallery(uGallery, didTapAtIndex: self.tag)
-			}
-			else {
-				// it the gallery doesn't implement custom double tap behaviour, use zoom
-				if !uGallery.photoGallery(uGallery, didDoubleTapAtIndex: self.tag) {
-					self.zoomFromLocation(tapGesture.locationInView(self))
-				}
-			}*/
 			if (tapGesture.numberOfTapsRequired == 1) {
 				if uDelegate.respondsToSelector("photoGallery:didTapAtIndex:") {
 					uDelegate.photoGallery!(gallery!, didTapAtIndex: self.tag)
@@ -287,6 +278,8 @@ class LBRemotePhotoItem: UIImageView
 	}
 }
 
+let captionPadding: CGFloat = 8.0
+
 class LBPhotoCaptionView: UIView
 {
 	init(frame: CGRect, plainText:NSString)
@@ -295,14 +288,14 @@ class LBPhotoCaptionView: UIView
 		
 		var captionLabel = self.captionLabelWithPlainText(plainText, orAttributedText:nil, fromFrame:frame)
 		
-		var backgroundView = UIView(frame: captionLabel.frame)
-		backgroundView.backgroundColor = UIColor.blackColor()
-		backgroundView.alpha = 0.6
-		
-		var captionFrame = CGRectMake(0, frame.size.height-captionLabel.frame.size.height,
-			captionLabel.frame.size.width, captionLabel.frame.size.height)
+		var captionFrame = CGRectMake(0, frame.size.height - captionLabel.frame.size.height - 2 * captionPadding,
+			captionLabel.frame.size.width + 2 * captionPadding, captionLabel.frame.size.height + 2 * captionPadding)
 		
 		self.frame = captionFrame
+		
+		var backgroundView = UIView(frame: self.bounds)
+		backgroundView.backgroundColor = UIColor.blackColor()
+		backgroundView.alpha = 0.6
 		
 		self.backgroundColor = UIColor.clearColor()
 		self.autoresizingMask = .FlexibleTopMargin | .FlexibleWidth
@@ -317,16 +310,18 @@ class LBPhotoCaptionView: UIView
 		
 		var captionLabel = self.captionLabelWithPlainText(nil, orAttributedText:attributedText, fromFrame:frame)
 		
-		var backgroundView = UIView(frame: captionLabel.frame)
+		var captionFrame = CGRectMake(0, frame.size.height - captionLabel.frame.size.height - 2 * captionPadding,
+			captionLabel.frame.size.width + 2 * captionPadding, captionLabel.frame.size.height + 2 * captionPadding)
+		
+		self.frame = captionFrame
+		
+		var backgroundView = UIView(frame: self.bounds)
 		backgroundView.backgroundColor = UIColor.blackColor()
 		backgroundView.alpha = 0.6
 		
-		var captionFrame = CGRectMake(0, frame.size.height-captionLabel.frame.size.height,
-			captionLabel.frame.size.width, captionLabel.frame.size.height)
-		
 		self.backgroundColor = UIColor.clearColor()
-		self.autoresizingMask = .FlexibleTopMargin | .FlexibleWidth;
-			
+		self.autoresizingMask = .FlexibleTopMargin | .FlexibleWidth
+		
 		self.addSubview(backgroundView)
 		self.addSubview(captionLabel)
 	}
@@ -352,10 +347,10 @@ class LBPhotoCaptionView: UIView
 		attributedText: NSAttributedString?, fromFrame frame: CGRect) -> UILabel
 	{
 		var captionFont = UIFont.systemFontOfSize(14)
-		var captionSize: CGSize = CGSizeZero
+		var captionSize = CGSizeZero
 		
 		if let pt = plainText {
-			captionSize = pt.boundingRectWithSize(CGSizeMake(frame.size.width, CGFloat(MAXFLOAT)), options: .UsesLineFragmentOrigin,
+			captionSize = pt.boundingRectWithSize(CGSizeMake(frame.size.width - 2 * captionPadding, CGFloat(MAXFLOAT)), options: .UsesLineFragmentOrigin,
 				attributes: [NSFontAttributeName: captionFont], context: nil).size
 		}
 		if let at = attributedText {
@@ -366,7 +361,8 @@ class LBPhotoCaptionView: UIView
 			captionSize.height = frame.size.height/3
 		}
 		
-		var captionLabel = UILabel(frame: CGRectMake(0, 0, frame.size.width, captionSize.height))
+		var captionLabel = UILabel(frame: CGRectMake(captionPadding, captionPadding,
+			frame.size.width - 2 * captionPadding, captionSize.height))
 		captionLabel.backgroundColor = UIColor.clearColor()
 		captionLabel.font = captionFont
 		captionLabel.numberOfLines = 0;
