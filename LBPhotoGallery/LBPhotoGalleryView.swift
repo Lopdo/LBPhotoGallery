@@ -248,7 +248,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	{
 		if let indicatorView = self.mainScrollIndicatorView {
 			indicatorView.tag = 1
-			UIView.animateWithDuration(0.3, { () -> Void in
+			UIView.animateWithDuration(0.3, animations: { () -> Void in
 				indicatorView.alpha = 1
 			})
 		}
@@ -443,7 +443,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		
 		var subView = LBPhotoContainerView(frame: frame, galleryMode: galleryMode, item: galleryItem!)
 		subView.tag = index
-		subView.galleryDelegate = self
+		subView.galleryDelegate = delegate
 		subView.gallery = self
 		
 		var captionItem:AnyObject? = nil

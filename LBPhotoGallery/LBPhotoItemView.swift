@@ -373,7 +373,7 @@ class LBPhotoCaptionView: UIView
 		captionLabel.textColor = UIColor.whiteColor()
 		
 		if (plainText != nil) {
-			captionLabel.text = plainText
+			captionLabel.text = plainText as? String
 		}
 		else if (attributedText != nil) {
 			captionLabel.attributedText = attributedText

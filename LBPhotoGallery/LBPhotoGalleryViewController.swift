@@ -39,7 +39,7 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 	
 	override init()
 	{
-		super.init()
+		super.init(nibName: nil, bundle: nil)
 		
 		commonInit()
 	}
