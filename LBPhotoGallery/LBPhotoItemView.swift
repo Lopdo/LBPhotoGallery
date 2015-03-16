@@ -109,6 +109,8 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		self.delegate = self
 		self.minimumZoomScale = 1
 		self.userInteractionEnabled = true
+		self.decelerationRate = UIScrollViewDecelerationRateFast
+		self.bounces = true
 		
 		var singleTapGesture = UITapGestureRecognizer(target: self, action: "tapGestureRecognizer:")
 		singleTapGesture.numberOfTapsRequired = 1
@@ -161,6 +163,35 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 
 	required init(coder aDecoder: NSCoder) {
 	    fatalError("init(coder:) has not been implemented")
+	}
+	
+	override func layoutSubviews()
+	{
+		super.layoutSubviews()
+		
+		// center the image as it becomes smaller than the size of the screen
+		if let uMainImageView = mainImageView {
+			var boundsSize = self.bounds.size
+			var frameToCenter = uMainImageView.frame
+			
+			// center horizontally
+			if frameToCenter.size.width < boundsSize.width {
+				frameToCenter.origin.x = (boundsSize.width - frameToCenter.size.width) / 2
+			}
+			else {
+				frameToCenter.origin.x = 0
+			}
+			
+			// center vertically
+			if frameToCenter.size.height < boundsSize.height {
+				frameToCenter.origin.y = (boundsSize.height - frameToCenter.size.height) / 2
+			}
+			else {
+				frameToCenter.origin.y = 0
+			}
+			
+			uMainImageView.frame = frameToCenter
+		}
 	}
 	
 	/*deinit
@@ -227,10 +258,97 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		}
 	}
 	
+	func setMaxMinZoomScalesForCurrentBounds()
+	{
+		if let uMainImageView = mainImageView {
+			var boundsSize = self.bounds.size
+			var imageSize = uMainImageView.bounds.size
+			
+			// calculate min/max zoomscale
+			var minScale = boundsSize.width / imageSize.width
+			
+			// on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
+			// maximum zoom scale to 0.5.
+			//CGFloat maxScale = 1.0 / [[UIScreen mainScreen] scale];
+			
+			// we don't want to behave any different on retina displays
+			var maxScale: CGFloat = 1.0
+			
+			// don't let minScale exceed maxScale. (If the image is smaller than the screen, we don't want to force it to be zoomed.)
+			if minScale > maxScale {
+				minScale = maxScale
+			}
+			
+			self.maximumZoomScale = maxScale
+			self.minimumZoomScale = minScale
+		}
+	}
+
+	
 	// MARK: - UIScrollViewDelegate methods
 	func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView?
 	{
 		return mainImageView
+	}
+	
+	// MARK: - Methods called during rotation to preserve the zoomScale and the visible portion of the image
+	
+	// returns the center point, in image coordinate space, to try to restore after rotation.
+	func pointToCenterAfterRotation() -> CGPoint
+	{
+		var boundsCenter = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds))
+		return self.convertPoint(boundsCenter, toView:mainImageView)
+	}
+	
+	// returns the zoom scale to attempt to restore after rotation.
+	func scaleToRestoreAfterRotation() -> CGFloat
+	{
+		var contentScale = self.zoomScale
+	
+		// If we're at the minimum zoom scale, preserve that by returning 0, which will be converted to the minimum
+		// allowable scale when the scale is restored.
+		if contentScale <= self.minimumZoomScale + CGFloat(FLT_EPSILON) {
+			contentScale = 0
+		}
+		
+		return contentScale
+	}
+	
+	func maximumContentOffset() -> CGPoint
+	{
+		var contentSize = self.contentSize
+		var boundsSize = self.bounds.size
+		return CGPointMake(contentSize.width - boundsSize.width, contentSize.height - boundsSize.height)
+	}
+	
+	func minimumContentOffset() -> CGPoint
+	{
+		return CGPointZero
+	}
+	
+	// Adjusts content offset and scale to try to preserve the old zoomscale and center.
+	func restoreCenterPoint(oldCenter: CGPoint, scale oldScale: CGFloat)
+	{
+		self.setMaxMinZoomScalesForCurrentBounds()
+	
+		if let uMainImageView = mainImageView {
+			// Step 1: restore zoom scale, first making sure it is within the allowable range.
+			self.zoomScale = min(self.maximumZoomScale, max(self.minimumZoomScale, oldScale))
+			
+			// Step 2: restore center point, first making sure it is within the allowable range.
+			
+			// 2a: convert our desired center point back to our own coordinate space
+			var boundsCenter = self.convertPoint(oldCenter, fromView:uMainImageView)
+			// 2b: calculate the content offset that would yield that center point
+			var offset = CGPointMake(boundsCenter.x - self.bounds.size.width / 2.0,
+				boundsCenter.y - self.bounds.size.height / 2.0)
+			// 2c: restore offset, adjusted to be within the allowable range
+			var maxOffset = self.maximumContentOffset()
+			var minOffset = self.minimumContentOffset()
+			offset.x = max(minOffset.x, min(maxOffset.x, offset.x))
+			offset.y = max(minOffset.y, min(maxOffset.y, offset.y))
+			self.contentOffset = offset
+		}
 	}
 }
 
@@ -263,9 +381,18 @@ class LBRemotePhotoItem: UIImageView
 					if (error == nil && image != nil) {
 						activityIndicator.removeFromSuperview()
 						
-						var widthScale = image.size.width / selfW.photoItemView.frame.size.width
+						selfW.frame = CGRectMake(0, 0, image.size.width, image.size.height)
+						selfW.photoItemView.contentSize = image.size
+						
+						selfW.photoItemView.setMaxMinZoomScalesForCurrentBounds()
+						selfW.photoItemView.zoomScale = selfW.photoItemView.minimumZoomScale
+						
+						/*var widthScale = image.size.width / selfW.photoItemView.frame.size.width
 						var heightScale = image.size.height / selfW.photoItemView.frame.size.height
 						selfW.photoItemView.maximumZoomScale = min(widthScale, heightScale) * MaxZoomingScale
+						selfW.frame.size.width = image.size.width
+						selfW.frame.size.height = image.size.height
+						selfW.center = selfW.photoItemView.center*/
 					}
 				})
 			}
@@ -278,7 +405,7 @@ class LBRemotePhotoItem: UIImageView
 	}
 }
 
-let captionPadding: CGFloat = 8.0
+let captionPadding: CGFloat = 12.0
 
 class LBPhotoCaptionView: UIView
 {
@@ -346,7 +473,7 @@ class LBPhotoCaptionView: UIView
 	func captionLabelWithPlainText(plainText: NSString?, orAttributedText
 		attributedText: NSAttributedString?, fromFrame frame: CGRect) -> UILabel
 	{
-		var captionFont = UIFont.systemFontOfSize(14)
+		var captionFont = UIFont.systemFontOfSize(16)
 		var captionSize = CGSizeZero
 		
 		if let pt = plainText {
