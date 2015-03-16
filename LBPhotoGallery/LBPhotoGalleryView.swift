@@ -231,9 +231,21 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		if Int(newPage) != currentPage {
 			currentPage = Int(newPage)
 			self.populateSubviews()
-			
-			for subView in reusableViews {
-				if subView.tag != Int(newPage) {
+		}
+		
+		for subView in reusableViews {
+			if verticalGallery {
+				if	subView.frame.origin.y < mainScrollView.contentOffset.y - mainScrollView.frame.size.height ||
+					subView.frame.origin.y > mainScrollView.contentOffset.y + mainScrollView.frame.size.height
+				{
+					subView.resetZoom()
+				}
+
+			}
+			else {
+				if	subView.frame.origin.x < mainScrollView.contentOffset.x - mainScrollView.frame.size.width ||
+					subView.frame.origin.x > mainScrollView.contentOffset.x + mainScrollView.frame.size.width
+				{
 					subView.resetZoom()
 				}
 			}
