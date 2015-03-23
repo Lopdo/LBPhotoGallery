@@ -444,7 +444,19 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		case .ImageLocal:
 			galleryItem = dataSource!.photoGallery!(self, localImageAtIndex:index)
 		case .ImageRemote:
-			galleryItem = dataSource!.photoGallery!(self, remoteImageURLAtIndex:index)
+			var url = dataSource!.photoGallery!(self, remoteImageURLAtIndex:index)
+			var placeholder: UIImage? = nil
+			if dataSource!.respondsToSelector("photoGallery:remoteImagePlaceholderAtIndex:") {
+				placeholder = dataSource!.photoGallery!(self, remoteImagePlaceholderAtIndex: index)
+			}
+			if let url = url {
+				if let placeholder = placeholder {
+					galleryItem = ["url": url, "placeholder": placeholder]
+				}
+				else {
+					galleryItem = ["url": url]
+				}
+			}
 		case .CustomView:
 			galleryItem = dataSource!.photoGallery!(self, customViewAtIndex:index)
 		}
@@ -560,6 +572,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	optional func photoGallery(gallery: LBPhotoGalleryView, localImageAtIndex: Int) -> UIImage?
 	optional func photoGallery(gallery: LBPhotoGalleryView, remoteImageURLAtIndex: Int) -> NSURL?
+	optional func photoGallery(gallery: LBPhotoGalleryView, remoteImagePlaceholderAtIndex: Int) -> UIImage? // used only for remove images
 	optional func photoGallery(gallery: LBPhotoGalleryView, customViewAtIndex: Int) -> UIView?
 	
 	optional func photoGallery(gallery: LBPhotoGalleryView, plainTextCaptionAtIndex: Int) -> NSString?

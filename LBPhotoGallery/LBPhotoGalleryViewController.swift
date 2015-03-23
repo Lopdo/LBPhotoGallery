@@ -161,6 +161,11 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 		return nil
 	}
 	
+	func photoGallery(gallery: LBPhotoGalleryView, remoteImagePlaceholderAtIndex: Int) -> UIImage?
+	{
+		return nil
+	}
+	
 	func photoGallery(gallery: LBPhotoGalleryView, customViewAtIndex: Int) -> UIView?
 	{
 		return nil

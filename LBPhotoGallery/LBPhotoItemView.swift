@@ -25,7 +25,8 @@ class LBPhotoContainerView: UIView
 			case .ImageLocal:
 				photoItemView = LBPhotoItemView(frame: displayFrame, localImage: item as UIImage)
 			case .ImageRemote:
-				photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: item as NSURL)
+				var itemDict = item as NSDictionary
+				photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as NSURL, placeholder: itemDict["placeholder"] as UIImage?)
 			case .CustomView:
 				photoItemView = LBPhotoItemView(frame: displayFrame, customView: item as UIView)
 			
@@ -144,11 +145,11 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		self.maximumZoomScale = min(widthScale, heightScale) * MaxZoomingScale;
 	}
 	
-	convenience init(frame: CGRect, remoteURL: NSURL)
+	convenience init(frame: CGRect, remoteURL: NSURL, placeholder: UIImage?)
 	{
 		self.init(frame: frame)
 		
-		var remotePhoto = LBRemotePhotoItem(frame: frame, remoteURL:remoteURL)
+		var remotePhoto = LBRemotePhotoItem(frame: frame, remoteURL: remoteURL, placeholder: placeholder)
 		remotePhoto.photoItemView = self
 		mainImageView = remotePhoto
 		self.addSubview(remotePhoto)
@@ -356,7 +357,7 @@ class LBRemotePhotoItem: UIImageView
 {
 	var photoItemView: LBPhotoItemView!
 	
-	init(frame: CGRect, remoteURL: NSURL)
+	init(frame: CGRect, remoteURL: NSURL, placeholder: UIImage?)
 	{
 		super.init(frame: frame)
 		
@@ -377,24 +378,28 @@ class LBRemotePhotoItem: UIImageView
 		var popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(delayInSeconds * Double(NSEC_PER_SEC)))
 		dispatch_after(popTime, dispatch_get_main_queue(), { () -> Void in
 			if let selfW = weakSelf {
-				selfW.sd_setImageWithURL(remoteURL, completed: { (image, error, cacheType, url) -> Void in
-					if (error == nil && image != nil) {
-						activityIndicator.removeFromSuperview()
-						
-						selfW.frame = CGRectMake(0, 0, image.size.width, image.size.height)
-						selfW.photoItemView.contentSize = image.size
-						
-						selfW.photoItemView.setMaxMinZoomScalesForCurrentBounds()
-						selfW.photoItemView.zoomScale = selfW.photoItemView.minimumZoomScale
-						
-						/*var widthScale = image.size.width / selfW.photoItemView.frame.size.width
-						var heightScale = image.size.height / selfW.photoItemView.frame.size.height
-						selfW.photoItemView.maximumZoomScale = min(widthScale, heightScale) * MaxZoomingScale
-						selfW.frame.size.width = image.size.width
-						selfW.frame.size.height = image.size.height
-						selfW.center = selfW.photoItemView.center*/
+				var completeHandler = { (image: UIImage?, error: NSError?, cacheType: SDImageCacheType, url:NSURL?) -> Void in
+					if let error = error {
+						NSLog("%@", error.description)
 					}
-				})
+					else {
+						if let image = image {
+							activityIndicator.removeFromSuperview()
+							
+							selfW.frame = CGRectMake(0, 0, image.size.width, image.size.height)
+							selfW.photoItemView.contentSize = image.size
+							
+							selfW.photoItemView.setMaxMinZoomScalesForCurrentBounds()
+							selfW.photoItemView.zoomScale = selfW.photoItemView.minimumZoomScale
+						}
+					}
+				}
+				if placeholder != nil {
+					selfW.sd_setImageWithURL(remoteURL, placeholderImage: placeholder!, completed: completeHandler)
+				}
+				else {
+					selfW.sd_setImageWithURL(remoteURL, completed: completeHandler)
+				}
 			}
 		})
 	}
