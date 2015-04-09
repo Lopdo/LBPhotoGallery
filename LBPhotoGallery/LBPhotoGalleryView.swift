@@ -59,7 +59,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	{
 		super.init(coder: aDecoder)
 		
-		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight;
+		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
 		
 		self.initMainScrollView()
 	}
@@ -183,7 +183,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	{
 		for view in mainScrollView.subviews {
 			if view is LBPhotoContainerView && view.tag == currentPage {
-				return (view as LBPhotoContainerView)
+				return (view as! LBPhotoContainerView)
 			}
 		}
 		
@@ -307,7 +307,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 	
 	func initMainScrollView()
 	{
-		var frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+		var frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)
 		
 		if verticalGallery {
 			frame.size.height += subviewGap
@@ -333,7 +333,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 		self.addSubview(mainScrollView)
 		
 		reusableViews.removeAll(keepCapacity: false)
-		currentPage = 0;
+		currentPage = 0
 	}
 	
 	func setupMainScrollView()
@@ -378,7 +378,7 @@ class LBPhotoGalleryView: UIView, LBPhotoGalleryDelegate
 			contentSize.width = mainScrollView.frame.size.width * CGFloat(dataSourceNumOfViews)
 		}
 		
-		mainScrollView.contentSize = contentSize;
+		mainScrollView.contentSize = contentSize
 		
 		for view in mainScrollView.subviews {
 			if let uView = view as? LBPhotoContainerView {

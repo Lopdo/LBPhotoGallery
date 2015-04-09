@@ -23,12 +23,12 @@ class LBPhotoContainerView: UIView
 
 		switch (galleryMode) {
 			case .ImageLocal:
-				photoItemView = LBPhotoItemView(frame: displayFrame, localImage: item as UIImage)
+				photoItemView = LBPhotoItemView(frame: displayFrame, localImage: item as! UIImage)
 			case .ImageRemote:
-				var itemDict = item as NSDictionary
-				photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as NSURL, placeholder: itemDict["placeholder"] as UIImage?)
+				var itemDict = item as! NSDictionary
+				photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as! NSURL, placeholder: itemDict["placeholder"] as? UIImage)
 			case .CustomView:
-				photoItemView = LBPhotoItemView(frame: displayFrame, customView: item as UIView)
+				photoItemView = LBPhotoItemView(frame: displayFrame, customView: item as! UIView)
 			
 		}
 
@@ -70,11 +70,11 @@ class LBPhotoContainerView: UIView
 		
 		switch (style) {
 		case .PlainText:
-			photoCaptionView = LBPhotoCaptionView(frame: self.frame, plainText: item as NSString)
+			photoCaptionView = LBPhotoCaptionView(frame: self.frame, plainText: item as! NSString)
 		case .AttributedText:
-			photoCaptionView = LBPhotoCaptionView(frame: self.frame, attributedText: item as NSAttributedString)
+			photoCaptionView = LBPhotoCaptionView(frame: self.frame, attributedText: item as! NSAttributedString)
 		case .CustomView:
-			photoCaptionView = LBPhotoCaptionView(frame: self.frame, customView: item as UIView)
+			photoCaptionView = LBPhotoCaptionView(frame: self.frame, customView: item as! UIView)
 		}
 		
 		self.addSubview(photoCaptionView!)
@@ -104,7 +104,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 	{
 		super.init(frame: frame)
 		
-		self.contentSize = self.frame.size;
+		self.contentSize = self.frame.size
 		self.backgroundColor = UIColor.clearColor()
 		self.clipsToBounds = true
 		self.delegate = self
@@ -137,12 +137,12 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		imageView.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
 		imageView.image = localImage
 		
-		mainImageView = imageView;
+		mainImageView = imageView
 		self.addSubview(imageView)
 		
 		var widthScale = localImage.size.width / self.frame.size.width
 		var heightScale = localImage.size.height / self.frame.size.height
-		self.maximumZoomScale = min(widthScale, heightScale) * MaxZoomingScale;
+		self.maximumZoomScale = min(widthScale, heightScale) * MaxZoomingScale
 	}
 	
 	convenience init(frame: CGRect, remoteURL: NSURL, placeholder: UIImage?)
@@ -225,7 +225,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 					uDelegate.photoGallery!(gallery!, didDoubleTapAtIndex:self.tag)
 				}
 			default:    // .None
-				break;
+				break
 			}
 		}
 	}
@@ -267,10 +267,6 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 			
 			// calculate min/max zoomscale
 			var minScale = boundsSize.width / imageSize.width
-			
-			// on high resolution screens we have double the pixel density, so we will be seeing every pixel if we limit the
-			// maximum zoom scale to 0.5.
-			//CGFloat maxScale = 1.0 / [[UIScreen mainScreen] scale];
 			
 			// we don't want to behave any different on retina displays
 			var maxScale: CGFloat = 1.0
@@ -363,8 +359,8 @@ class LBRemotePhotoItem: UIImageView
 		
 		self.userInteractionEnabled = true
 		self.backgroundColor = UIColor.clearColor()
-		self.contentMode = .ScaleAspectFit;
-		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight;
+		self.contentMode = .ScaleAspectFit
+		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
 		
 		var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
 		activityIndicator.frame = frame
@@ -497,7 +493,7 @@ class LBPhotoCaptionView: UIView
 			frame.size.width - 2 * captionPadding, captionSize.height))
 		captionLabel.backgroundColor = UIColor.clearColor()
 		captionLabel.font = captionFont
-		captionLabel.numberOfLines = 0;
+		captionLabel.numberOfLines = 0
 		captionLabel.textColor = UIColor.whiteColor()
 		
 		if (plainText != nil) {

@@ -37,7 +37,7 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 		self.setupBottomBar()
 	}
 	
-	override init()
+	init()
 	{
 		super.init(nibName: nil, bundle: nil)
 		
@@ -175,7 +175,7 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 	
 	func photoGallery(gallery: LBPhotoGalleryView, didTapAtIndex: Int)
 	{
-		controlViewHidden = !controlViewHidden;
+		controlViewHidden = !controlViewHidden
 		
 		UIView.animateWithDuration(0.3, animations: { () -> Void in
 			var frame = self.topView.frame
@@ -223,7 +223,7 @@ class LBPhotoGalleryViewController: UIViewController, LBPhotoGalleryDelegate, LB
 		topViewBar.setItems([btnDone], animated:true)
 		
 		topView = UIView(frame: topViewBar.frame)
-		topView.autoresizingMask = .FlexibleWidth;
+		topView.autoresizingMask = .FlexibleWidth
 		topView.addSubview(topViewBar)
 		self.view.addSubview(topView)
 	}
