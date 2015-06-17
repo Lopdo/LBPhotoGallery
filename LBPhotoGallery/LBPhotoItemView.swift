@@ -26,7 +26,14 @@ class LBPhotoContainerView: UIView
 				photoItemView = LBPhotoItemView(frame: displayFrame, localImage: item as! UIImage)
 			case .ImageRemote:
 				var itemDict = item as! NSDictionary
-				photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as! NSURL, placeholder: itemDict["placeholder"] as? UIImage)
+				var placeholder = itemDict["placeholder"] as? UIImage
+				var placeholderURL = itemDict["placeholderURL"] as? NSURL
+				if placeholderURL != nil {
+					photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as! NSURL, placeholderURL: placeholderURL)
+				}
+				else {
+					photoItemView = LBPhotoItemView(frame: displayFrame, remoteURL: itemDict.objectForKey("url") as! NSURL, placeholder: placeholder)
+				}
 			case .CustomView:
 				photoItemView = LBPhotoItemView(frame: displayFrame, customView: item as! UIView)
 			
@@ -133,7 +140,7 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 		
 		var imageView = UIImageView(frame: frame)
 		imageView.backgroundColor = UIColor.clearColor()
-		imageView.contentMode = .ScaleAspectFit
+		imageView.contentMode = .ScaleAspectFill
 		imageView.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
 		imageView.image = localImage
 		
@@ -149,7 +156,17 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 	{
 		self.init(frame: frame)
 		
-		var remotePhoto = LBRemotePhotoItem(frame: frame, remoteURL: remoteURL, placeholder: placeholder)
+		var remotePhoto = LBRemotePhotoItem(frame: frame, remoteURL: remoteURL, placeholder: placeholder, placeholderURL: nil)
+		remotePhoto.photoItemView = self
+		mainImageView = remotePhoto
+		self.addSubview(remotePhoto)
+	}
+	
+	convenience init(frame: CGRect, remoteURL: NSURL, placeholderURL: NSURL?)
+	{
+		self.init(frame: frame)
+		
+		var remotePhoto = LBRemotePhotoItem(frame: frame, remoteURL: remoteURL, placeholder: nil, placeholderURL: placeholderURL)
 		remotePhoto.photoItemView = self
 		mainImageView = remotePhoto
 		self.addSubview(remotePhoto)
@@ -352,39 +369,39 @@ class LBPhotoItemView: UIScrollView, UIScrollViewDelegate
 class LBRemotePhotoItem: UIImageView
 {
 	var photoItemView: LBPhotoItemView!
+	var activityIndicator: UIActivityIndicatorView? = nil
 	
-	init(frame: CGRect, remoteURL: NSURL, placeholder: UIImage?)
+	func loadMainImage(remoteURL: NSURL, placeholder: UIImage?)
 	{
-		super.init(frame: frame)
-		
-		self.userInteractionEnabled = true
-		self.backgroundColor = UIColor.clearColor()
-		self.contentMode = .ScaleAspectFit
-		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
-		
-		var activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
-		activityIndicator.frame = frame
-		activityIndicator.startAnimating()
-		
-		self.addSubview(activityIndicator)
-		
 		weak var weakSelf = self
 		
 		var delayInSeconds = 0.0
 		var popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(delayInSeconds * Double(NSEC_PER_SEC)))
+		
 		dispatch_after(popTime, dispatch_get_main_queue(), { () -> Void in
 			if let selfW = weakSelf {
 				var completeHandler = { (image: UIImage?, error: NSError?, cacheType: SDImageCacheType, url:NSURL?) -> Void in
+					
 					if let error = error {
 						NSLog("%@", error.description)
 					}
 					else {
 						if let image = image {
-							activityIndicator.removeFromSuperview()
+							if let ai = self.activityIndicator {
+								ai.removeFromSuperview()
+							}
+							self.activityIndicator = nil
 							
-							selfW.frame = CGRectMake(0, 0, image.size.width, image.size.height)
+							// HACK: gallery in detail screen needs to crop the image, big gallery doesn't
+							if image.size.width < 500 || image.size.height < 500 {
+								var minSize = min(image.size.width, image.size.height)
+								selfW.frame = CGRectMake(0, 0, minSize, minSize)
+							}
+							else {
+								selfW.frame = CGRectMake(0, 0, image.size.width, image.size.height)
+							}
 							selfW.photoItemView.contentSize = image.size
-							
+							//selfW.photoItemView.contentMode = .ScaleAspectFill
 							selfW.photoItemView.setMaxMinZoomScalesForCurrentBounds()
 							selfW.photoItemView.zoomScale = selfW.photoItemView.minimumZoomScale
 						}
@@ -399,7 +416,80 @@ class LBRemotePhotoItem: UIImageView
 			}
 		})
 	}
+	
+	init(frame: CGRect, remoteURL: NSURL, placeholder: UIImage?, placeholderURL: NSURL?)
+	{
+		super.init(frame: frame)
+		
+		self.userInteractionEnabled = true
+		self.backgroundColor = UIColor.clearColor()
+		self.contentMode = .ScaleAspectFill
+		self.autoresizingMask = .FlexibleTopMargin | .FlexibleLeftMargin | .FlexibleWidth | .FlexibleHeight
+		
+		activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
+		//activityIndicator!.frame = frame
+		activityIndicator!.center = self.center
+		activityIndicator!.startAnimating()
+		
+		self.addSubview(activityIndicator!)
+		
+		weak var weakSelf = self
+		
+		var delayInSeconds = 0.0
+		var popTime = dispatch_time(DISPATCH_TIME_NOW, Int64(delayInSeconds * Double(NSEC_PER_SEC)))
+		
+		// load placeholder
+		if placeholderURL != nil {
+			dispatch_after(popTime, dispatch_get_main_queue(), { () -> Void in
+				if let selfW = weakSelf {
+					var completeHandler = { (image: UIImage?, error: NSError?, cacheType: SDImageCacheType, url:NSURL?) -> Void in
+						if let error = error {
+							NSLog("%@", error.description)
+						}
+						else {
+							/*if let ai = self.activityIndicator {
+								ai.removeFromSuperview()
+							}
+							self.activityIndicator = nil*/
+							
+							if let image = image {
+								var newHeight = image.size.height
+								var newWidth = image.size.width
+								if newWidth > self.superview!.frame.size.width {
+									newWidth = self.superview!.frame.size.width
+									newHeight = newHeight / (image.size.width / self.superview!.frame.size.width)
+								}
+								if newHeight > self.superview!.frame.size.height {
+									newHeight = self.superview!.frame.size.height
+									newWidth = newWidth / (image.size.height / self.superview!.frame.size.height)
+								}
+								
+								selfW.frame = CGRectMake(0, 0, newWidth, newHeight)
+								self.center = self.superview!.center
+								
+								if let ai = self.activityIndicator {
+									ai.center = CGPoint(x: newWidth / 2, y: newHeight / 2)
+								}
+							}
+						}
+						
+						self.loadMainImage(remoteURL, placeholder: placeholder)
+					}
+					if placeholder != nil {
+						selfW.sd_setImageWithURL(placeholderURL!, placeholderImage: placeholder!, completed: completeHandler)
+					}
+					else {
+						selfW.sd_setImageWithURL(placeholderURL!, completed: completeHandler)
+					}
+				}
+			})
+		}
+		else {
+			loadMainImage(remoteURL, placeholder: placeholder)
+		}
+	}
 
+	
 	required init(coder aDecoder: NSCoder)
 	{
 	    super.init(coder: aDecoder)
